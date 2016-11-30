@@ -33,7 +33,7 @@ func handleMercimek(b *tlbot.Bot, msg *tlbot.Message) {
 			fileID = msg.Document.FileID
 		}
 	} else {
-		err = fmt.Errorf("mercimeklerin fotografini cekip *dosya* olarak gonder")
+		err = fmt.Errorf("mercimeklerin fotografini cekip gonder")
 	}
 
 	if err != nil {
