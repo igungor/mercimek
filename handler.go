@@ -23,7 +23,7 @@ func handleMercimek(b *tlbot.Bot, msg *tlbot.Message) {
 	opts := &tlbot.SendOptions{}
 
 	var fileID string
-	var err error = nil
+	var err error
 	if len(msg.Photos) != 0 {
 		// last photo has the max resolution
 		fileID = msg.Photos[len(msg.Photos)-1].FileID
@@ -125,7 +125,7 @@ func handleMercimek(b *tlbot.Bot, msg *tlbot.Message) {
 
 	resultImage, err := os.OpenFile(resultImagePath, os.O_CREATE|os.O_RDWR, 0644)
 	if err != nil {
-		errmsg := fmt.Sprintf("bir takim hatalar", err)
+		errmsg := fmt.Sprintf("bir takim hatalar: %v", err)
 		_, _ = b.SendMessage(msg.Chat.ID, errmsg, nil)
 		return
 	}
