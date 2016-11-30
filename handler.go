@@ -21,14 +21,28 @@ var httpclient = http.Client{Timeout: 30 * time.Second}
 func handleMercimek(b *tlbot.Bot, msg *tlbot.Message) {
 	opts := &tlbot.SendOptions{}
 
-	if !msg.Document.Exists() {
-		errmsg := "mercimeklerin fotografini cekip *dosya* olarak gonder"
+	var fileID string
+	var err error = nil
+	if len(msg.Photos) != 0 {
+		// last photo has the max resolution
+		fileID = msg.Photos[len(msg.Photos)-1].FileID
+	} else if msg.Document.Exists() {
+		if !strings.HasPrefix(msg.Document.MimeType, "image") {
+			err = fmt.Errorf("gonderdigin dosya fotografa benzemiyor")
+		} else {
+			fileID = msg.Document.FileID
+		}
+	} else {
+		err = fmt.Errorf("mercimeklerin fotografini cekip *dosya* olarak gonder")
+	}
+
+	if err != nil {
 		opts.ParseMode = tlbot.ModeMarkdown
-		_, _ = b.SendMessage(msg.Chat.ID, errmsg, opts)
+		_, _ = b.SendMessage(msg.Chat.ID, err.Error(), opts)
 		return
 	}
 
-	u, err := b.GetFileDownloadURL(msg.Document.FileID)
+	u, err := b.GetFileDownloadURL(fileID)
 	if err != nil {
 		log.Fatal(err)
 	}
