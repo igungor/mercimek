@@ -5,5 +5,5 @@
   "webhook": "",
   "binary-path": "",
   "particle-size": "300-50000",
-  "particle-circularity": "050-0.95"
+  "particle-circularity": "0.50-0.95"
 }
