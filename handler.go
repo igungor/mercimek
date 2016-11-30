@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"text/template"
 	"time"
@@ -55,22 +56,41 @@ func handleMercimek(b *tlbot.Bot, msg *tlbot.Message) {
 	}
 	defer resp.Body.Close()
 
-	f, err := ioutil.TempFile("", "mercimek-")
+	tempdir, err := ioutil.TempDir("", "mercimek-")
 	if err != nil {
-		errmsg := fmt.Sprintf("bir hata olustu ya: %v", err)
-		_, _ = b.SendMessage(msg.Chat.ID, errmsg, nil)
-		return
-	}
-	defer f.Close()
-
-	_, err = io.Copy(f, resp.Body)
-	if err != nil {
-		errmsg := fmt.Sprintf("bir hata olustu ya: %v", err)
+		errmsg := fmt.Sprintf("bir takim hatalar: %v", err)
 		_, _ = b.SendMessage(msg.Chat.ID, errmsg, nil)
 		return
 	}
 
-	tmpl, err := template.New("mercimek-macro").Parse(macroTemplate)
+	origImage, err := os.OpenFile(filepath.Join(tempdir, "orig.jpg"), os.O_CREATE|os.O_RDWR, 0644)
+	if err != nil {
+		errmsg := fmt.Sprintf("bir takim hatalar: %v", err)
+		_, _ = b.SendMessage(msg.Chat.ID, errmsg, nil)
+		return
+
+	}
+	defer origImage.Close()
+
+	const macroName = "macro.ijm"
+	resultImagePath := filepath.Join(tempdir, "result.jpg")
+
+	macro, err := os.OpenFile(filepath.Join(tempdir, macroName), os.O_CREATE|os.O_RDWR, 0644)
+	if err != nil {
+		errmsg := fmt.Sprintf("bir takim hatalar: %v", err)
+		_, _ = b.SendMessage(msg.Chat.ID, errmsg, nil)
+		return
+	}
+	defer macro.Close()
+
+	_, err = io.Copy(origImage, resp.Body)
+	if err != nil {
+		errmsg := fmt.Sprintf("bir takim hatalar: %v", err)
+		_, _ = b.SendMessage(msg.Chat.ID, errmsg, nil)
+		return
+	}
+
+	tmpl, err := template.New(macroName).Parse(macroTemplate)
 	if err != nil {
 		errmsg := fmt.Sprintf("template ile ilgili bi hata yaptim: %v", err)
 		_, _ = b.SendMessage(msg.Chat.ID, errmsg, nil)
@@ -83,45 +103,38 @@ func handleMercimek(b *tlbot.Bot, msg *tlbot.Message) {
 		ParticleSize        string
 		ParticleCircularity string
 	}{
-		ImagePath:           f.Name(),
-		ResultImagePath:     f.Name() + "-result.jpg",
+		ImagePath:           origImage.Name(),
+		ResultImagePath:     resultImagePath,
 		ParticleSize:        config.ParticleSize,
 		ParticleCircularity: config.ParticleCircularity,
 	}
 
-	tf, err := ioutil.TempFile("", "macro-")
-	if err != nil {
-		errmsg := fmt.Sprintf("bir hata olustu ya: %v", err)
-		_, _ = b.SendMessage(msg.Chat.ID, errmsg, nil)
-	}
-	defer tf.Close()
-
-	err = tmpl.Execute(tf, r)
+	err = tmpl.Execute(macro, r)
 	if err != nil {
 		errmsg := fmt.Sprintf("template ile ilgili bi hata yaptim: %v", err)
 		_, _ = b.SendMessage(msg.Chat.ID, errmsg, nil)
 		return
 	}
 
-	count, err := countMercimek(tf.Name())
+	count, err := executeMacro(macro.Name())
 	if err != nil {
 		errmsg := fmt.Sprintf("mercimekleri sayamadim cunku: %v", err)
 		_, _ = b.SendMessage(msg.Chat.ID, errmsg, nil)
 		return
 	}
 
-	result, err := os.Open(r.ResultImagePath)
+	resultImage, err := os.OpenFile(resultImagePath, os.O_CREATE|os.O_RDWR, 0644)
 	if err != nil {
-		errmsg := fmt.Sprintf("bir hata olustu ya: %v", err)
+		errmsg := fmt.Sprintf("bir takim hatalar", err)
 		_, _ = b.SendMessage(msg.Chat.ID, errmsg, nil)
 		return
 	}
-	defer result.Close()
+	defer resultImage.Close()
 
 	photo := tlbot.Photo{
 		File: tlbot.File{
-			Name: result.Name(),
-			Body: result,
+			Body: resultImage,
+			Name: resultImage.Name(),
 		},
 		Caption: count,
 	}
@@ -134,7 +147,7 @@ func handleMercimek(b *tlbot.Bot, msg *tlbot.Message) {
 	}
 }
 
-func countMercimek(macroPath string) (string, error) {
+func executeMacro(macroPath string) (string, error) {
 	cmd := exec.Command(config.BinaryPath, "--headless", "--console", "-macro", macroPath)
 
 	var buf bytes.Buffer
