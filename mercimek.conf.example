@@ -3,7 +3,6 @@
   "port": "1985",
   "token": "",
   "webhook": "",
-  "debug": true,
   "binary-path": "",
   "particle-size": "300-50000",
   "particle-circularity": "050-0.95"
