@@ -116,6 +116,10 @@ func handleMercimek(b *tlbot.Bot, msg *tlbot.Message) {
 		return
 	}
 
+	go func() {
+		_ = b.SendChatAction(msg.Chat.ID, tlbot.UploadingPhoto)
+	}()
+
 	count, err := executeMacro(macro.Name())
 	if err != nil {
 		errmsg := fmt.Sprintf("mercimekleri sayamadim cunku: %v", err)
