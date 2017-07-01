@@ -64,7 +64,6 @@ type Config struct {
 	Webhook string `json:"webhook"`
 	Host    string `json:"host"`
 	Port    string `json:"port"`
-	Debug   bool   `json:"debug"`
 
 	BinaryPath          string `json:"binary-path"`
 	ParticleSize        string `json:"particle-size"`
