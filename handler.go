@@ -19,7 +19,7 @@ import (
 
 var httpclient = http.Client{Timeout: 30 * time.Second}
 
-func handleMercimek(b *telegram.Bot, msg *telegram.Message) {
+func handleMercimek(bot *telegram.Bot, msg *telegram.Message) {
 	var fileID string
 	var err error
 	if len(msg.Photos) != 0 {
@@ -35,21 +35,20 @@ func handleMercimek(b *telegram.Bot, msg *telegram.Message) {
 		err = fmt.Errorf("mercimeklerin fotografini cekip gonder")
 	}
 
-	md := telegram.WithParseMode(telegram.ModeMarkdown)
 	if err != nil {
-		_, _ = b.SendMessage(msg.Chat.ID, err.Error(), md)
+		_, _ = bot.SendMessage(msg.Chat.ID, err.Error())
 		return
 	}
 
-	u, err := b.GetFileDownloadURL(fileID)
+	u, err := bot.GetFileDownloadURL(fileID)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	resp, err := httpclient.Get(u)
 	if err != nil {
-		errmsg := fmt.Sprintf("gonderdigin dosyayi su sebepten indiremedim: %v", err)
-		_, _ = b.SendMessage(msg.Chat.ID, errmsg, nil)
+		errmsg := fmt.Sprintf("gonderdigin dosyayi indiremedim: %v", err)
+		_, _ = bot.SendMessage(msg.Chat.ID, errmsg)
 		return
 	}
 	defer resp.Body.Close()
@@ -57,14 +56,14 @@ func handleMercimek(b *telegram.Bot, msg *telegram.Message) {
 	tempdir, err := ioutil.TempDir("", "mercimek-")
 	if err != nil {
 		errmsg := fmt.Sprintf("bir takim hatalar: %v", err)
-		_, _ = b.SendMessage(msg.Chat.ID, errmsg, nil)
+		_, _ = bot.SendMessage(msg.Chat.ID, errmsg)
 		return
 	}
 
 	origImage, err := os.OpenFile(filepath.Join(tempdir, "orig.jpg"), os.O_CREATE|os.O_RDWR, 0644)
 	if err != nil {
 		errmsg := fmt.Sprintf("bir takim hatalar: %v", err)
-		_, _ = b.SendMessage(msg.Chat.ID, errmsg, nil)
+		_, _ = bot.SendMessage(msg.Chat.ID, errmsg)
 		return
 
 	}
@@ -76,7 +75,7 @@ func handleMercimek(b *telegram.Bot, msg *telegram.Message) {
 	macro, err := os.OpenFile(filepath.Join(tempdir, macroName), os.O_CREATE|os.O_RDWR, 0644)
 	if err != nil {
 		errmsg := fmt.Sprintf("bir takim hatalar: %v", err)
-		_, _ = b.SendMessage(msg.Chat.ID, errmsg, nil)
+		_, _ = bot.SendMessage(msg.Chat.ID, errmsg)
 		return
 	}
 	defer macro.Close()
@@ -84,14 +83,14 @@ func handleMercimek(b *telegram.Bot, msg *telegram.Message) {
 	_, err = io.Copy(origImage, resp.Body)
 	if err != nil {
 		errmsg := fmt.Sprintf("bir takim hatalar: %v", err)
-		_, _ = b.SendMessage(msg.Chat.ID, errmsg, nil)
+		_, _ = bot.SendMessage(msg.Chat.ID, errmsg)
 		return
 	}
 
 	tmpl, err := template.New(macroName).Parse(macroTemplate)
 	if err != nil {
 		errmsg := fmt.Sprintf("template ile ilgili bi hata yaptim: %v", err)
-		_, _ = b.SendMessage(msg.Chat.ID, errmsg, nil)
+		_, _ = bot.SendMessage(msg.Chat.ID, errmsg)
 		return
 	}
 
@@ -110,21 +109,21 @@ func handleMercimek(b *telegram.Bot, msg *telegram.Message) {
 	err = tmpl.Execute(macro, r)
 	if err != nil {
 		errmsg := fmt.Sprintf("template ile ilgili bi hata yaptim: %v", err)
-		_, _ = b.SendMessage(msg.Chat.ID, errmsg, nil)
+		_, _ = bot.SendMessage(msg.Chat.ID, errmsg)
 		return
 	}
 
 	count, err := executeMacro(macro.Name())
 	if err != nil {
 		errmsg := fmt.Sprintf("mercimekleri sayamadim cunku: %v", err)
-		_, _ = b.SendMessage(msg.Chat.ID, errmsg, nil)
+		_, _ = bot.SendMessage(msg.Chat.ID, errmsg)
 		return
 	}
 
 	resultImage, err := os.OpenFile(resultImagePath, os.O_CREATE|os.O_RDWR, 0644)
 	if err != nil {
 		errmsg := fmt.Sprintf("bir takim hatalar: %v", err)
-		_, _ = b.SendMessage(msg.Chat.ID, errmsg, nil)
+		_, _ = bot.SendMessage(msg.Chat.ID, errmsg)
 		return
 	}
 	defer resultImage.Close()
@@ -136,10 +135,10 @@ func handleMercimek(b *telegram.Bot, msg *telegram.Message) {
 		},
 		Caption: count,
 	}
-	_, err = b.SendPhoto(msg.Chat.ID, photo, md)
+	_, err = bot.SendPhoto(msg.Chat.ID, photo)
 	if err != nil {
-		errmsg := fmt.Sprintf("hersey hazirdi ama son anda bir hata olustu ya: %v", err)
-		_, _ = b.SendMessage(msg.Chat.ID, errmsg, nil)
+		errmsg := fmt.Sprintf("hersey hazirdi ama son anda bir hata olustu: %v", err)
+		_, _ = bot.SendMessage(msg.Chat.ID, errmsg)
 		return
 
 	}
