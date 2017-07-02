@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"net/http"
 	"os"
 
-	"github.com/igungor/tlbot"
+	"github.com/igungor/telegram"
 )
 
 // flags
@@ -41,21 +42,27 @@ func main() {
 		os.Exit(1)
 	}
 
-	b := tlbot.New(config.Token)
-	err = b.SetWebhook(config.Webhook)
+	bot := telegram.New(config.Token)
+	err = bot.SetWebhook(config.Webhook)
 	if err != nil {
 		log.Fatalf("error while setting webhook: %v", err)
 	}
 
 	log.Printf("Webhook set to %v\n", config.Webhook)
 
-	messages := b.Listen(net.JoinHostPort(config.Host, config.Port))
-	for msg := range messages {
+	http.HandleFunc("/", bot.Handler())
+
+	go func() {
+		addr := net.JoinHostPort(config.Host, config.Port)
+		log.Fatal(http.ListenAndServe(addr, nil))
+	}()
+
+	for msg := range bot.Messages() {
 		if msg.IsService() {
 			continue
 		}
 
-		go handleMercimek(&b, &msg)
+		go handleMercimek(bot, msg)
 	}
 }
 
@@ -86,5 +93,14 @@ func readConfig(configpath string) (config *Config, err error) {
 	if config.Webhook == "" {
 		return nil, fmt.Errorf("webhook field can not be empty")
 	}
+	if config.BinaryPath == "" {
+		return nil, fmt.Errorf("binary-path can not be empty")
+	}
+
+	_, err = os.Stat(config.BinaryPath)
+	if os.IsNotExist(err) {
+		return nil, fmt.Errorf("binary could not be found: %v", err)
+	}
+
 	return config, nil
 }

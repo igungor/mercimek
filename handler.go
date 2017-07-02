@@ -14,14 +14,12 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/igungor/tlbot"
+	"github.com/igungor/telegram"
 )
 
 var httpclient = http.Client{Timeout: 30 * time.Second}
 
-func handleMercimek(b *tlbot.Bot, msg *tlbot.Message) {
-	opts := &tlbot.SendOptions{}
-
+func handleMercimek(b *telegram.Bot, msg *telegram.Message) {
 	var fileID string
 	var err error
 	if len(msg.Photos) != 0 {
@@ -37,9 +35,9 @@ func handleMercimek(b *tlbot.Bot, msg *tlbot.Message) {
 		err = fmt.Errorf("mercimeklerin fotografini cekip gonder")
 	}
 
+	md := telegram.WithParseMode(telegram.ModeMarkdown)
 	if err != nil {
-		opts.ParseMode = tlbot.ModeMarkdown
-		_, _ = b.SendMessage(msg.Chat.ID, err.Error(), opts)
+		_, _ = b.SendMessage(msg.Chat.ID, err.Error(), md)
 		return
 	}
 
@@ -131,14 +129,14 @@ func handleMercimek(b *tlbot.Bot, msg *tlbot.Message) {
 	}
 	defer resultImage.Close()
 
-	photo := tlbot.Photo{
-		File: tlbot.File{
+	photo := telegram.Photo{
+		File: telegram.File{
 			Body: resultImage,
 			Name: resultImage.Name(),
 		},
 		Caption: count,
 	}
-	_, err = b.SendPhoto(msg.Chat.ID, photo, opts)
+	_, err = b.SendPhoto(msg.Chat.ID, photo, md)
 	if err != nil {
 		errmsg := fmt.Sprintf("hersey hazirdi ama son anda bir hata olustu ya: %v", err)
 		_, _ = b.SendMessage(msg.Chat.ID, errmsg, nil)
