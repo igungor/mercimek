@@ -102,8 +102,8 @@ func handleMercimek(bot *telegram.Bot, msg *telegram.Message) {
 	}{
 		ImagePath:           origImage.Name(),
 		ResultImagePath:     resultImagePath,
-		ParticleSize:        config.ParticleSize,
-		ParticleCircularity: config.ParticleCircularity,
+		ParticleSize:        cfg.ParticleSize,
+		ParticleCircularity: cfg.ParticleCircularity,
 	}
 
 	err = tmpl.Execute(macro, r)
@@ -145,7 +145,7 @@ func handleMercimek(bot *telegram.Bot, msg *telegram.Message) {
 }
 
 func executeMacro(macroPath string) (string, error) {
-	cmd := exec.Command(config.BinaryPath, "--headless", "--console", "-macro", macroPath)
+	cmd := exec.Command(cfg.BinaryPath, "--headless", "--console", "-macro", macroPath)
 
 	var buf bytes.Buffer
 	cmd.Stdout = &buf

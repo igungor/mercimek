@@ -17,7 +17,7 @@ var (
 	flagConfig = flag.String("c", "./mercimek.conf", "configuration file path")
 )
 
-var config *Config
+var cfg *config
 
 func usage() {
 	fmt.Fprintf(os.Stderr, "mercimek is a niche Telegram bot. It counts mercimek. Yep.\n\n")
@@ -36,24 +36,24 @@ func main() {
 	flag.Parse()
 
 	var err error
-	config, err = readConfig(*flagConfig)
+	cfg, err = readConfig(*flagConfig)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "configuration error: %v\n", err)
 		os.Exit(1)
 	}
 
-	bot := telegram.New(config.Token)
-	err = bot.SetWebhook(config.Webhook)
+	bot := telegram.New(cfg.Token)
+	err = bot.SetWebhook(cfg.Webhook)
 	if err != nil {
 		log.Fatalf("error while setting webhook: %v", err)
 	}
 
-	log.Printf("Webhook set to %v\n", config.Webhook)
+	log.Printf("Webhook set to %v\n", cfg.Webhook)
 
 	http.HandleFunc("/", bot.Handler())
 
 	go func() {
-		addr := net.JoinHostPort(config.Host, config.Port)
+		addr := net.JoinHostPort(cfg.Host, cfg.Port)
 		log.Fatal(http.ListenAndServe(addr, nil))
 	}()
 
@@ -66,7 +66,7 @@ func main() {
 	}
 }
 
-type Config struct {
+type config struct {
 	Token   string `json:"token"`
 	Webhook string `json:"webhook"`
 	Host    string `json:"host"`
@@ -77,30 +77,31 @@ type Config struct {
 	ParticleCircularity string `json:"particle-circularity"`
 }
 
-func readConfig(configpath string) (config *Config, err error) {
+func readConfig(configpath string) (*config, error) {
 	f, err := os.Open(configpath)
 	if err != nil {
 		return nil, err
 	}
 	defer f.Close()
 
-	if err := json.NewDecoder(f).Decode(&config); err != nil {
+	var cfg config
+	if err := json.NewDecoder(f).Decode(&cfg); err != nil {
 		return nil, err
 	}
-	if config.Token == "" {
+	if cfg.Token == "" {
 		return nil, fmt.Errorf("token field can not be empty")
 	}
-	if config.Webhook == "" {
+	if cfg.Webhook == "" {
 		return nil, fmt.Errorf("webhook field can not be empty")
 	}
-	if config.BinaryPath == "" {
+	if cfg.BinaryPath == "" {
 		return nil, fmt.Errorf("binary-path can not be empty")
 	}
 
-	_, err = os.Stat(config.BinaryPath)
+	_, err = os.Stat(cfg.BinaryPath)
 	if os.IsNotExist(err) {
 		return nil, fmt.Errorf("binary could not be found: %v", err)
 	}
 
-	return config, nil
+	return &cfg, nil
 }
