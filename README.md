@@ -1,6 +1,6 @@
 # mercimek
 
-a telegram bot that counts lemna minors from a given photo.
+a telegram bot that counts `lemna minors` from a given photo.
 
 ## installation
 
