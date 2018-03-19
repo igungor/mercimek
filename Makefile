@@ -9,7 +9,7 @@ release:
 
 deploy: release
 	@scp release/0.1/mercimek*.deb mercimek:
-	@ssh ilber 'sudo dpkg -i mercimek*.deb'
-	@ssh ilber 'sudo service mercimek restart'
+	@ssh do 'sudo dpkg -i mercimek*.deb'
+	@ssh do 'sudo systemctl restart mercimek'
 
 .PHONY: all build vet test release deploy

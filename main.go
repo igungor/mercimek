@@ -12,11 +12,6 @@ import (
 	"github.com/igungor/telegram"
 )
 
-// flags
-var (
-	flagConfig = flag.String("c", "./mercimek.conf", "configuration file path")
-)
-
 var cfg *config
 
 func usage() {
@@ -29,11 +24,14 @@ func usage() {
 }
 
 func main() {
-	log.SetPrefix("mercimek: ")
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
-
+	var (
+		flagConfig = flag.String("c", "./mercimek.conf", "configuration file path")
+	)
 	flag.Usage = usage
 	flag.Parse()
+
+	log.SetPrefix("mercimek: ")
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	var err error
 	cfg, err = readConfig(*flagConfig)

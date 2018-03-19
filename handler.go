@@ -40,12 +40,12 @@ func handleMercimek(bot *telegram.Bot, msg *telegram.Message) {
 		return
 	}
 
-	u, err := bot.GetFileDownloadURL(fileID)
+	f, err := bot.GetFile(fileID)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	resp, err := httpclient.Get(u)
+	resp, err := httpclient.Get(f.URL)
 	if err != nil {
 		errmsg := fmt.Sprintf("gonderdigin dosyayi indiremedim: %v", err)
 		_, _ = bot.SendMessage(msg.Chat.ID, errmsg)
