@@ -15,8 +15,7 @@ go get -u github.com/igungor/mercimek
 
 ## run
 
-mercimek is a wrapper around , so you'll need to download Fiji. See
-the [downloads page](https://imagej.net/Fiji/Downloads).
+You'll need to download Fiji. See the [downloads page](https://imagej.net/Fiji/Downloads).
 
 After you install Fiji, set the `binary-path` in mercimek.conf to the Fiji executable's full path.
 Since this is a telegram bot, you'll also need a Telegram token. See
