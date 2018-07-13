@@ -1,14 +1,21 @@
+![](assets/mercimek.png)
+
 # mercimek
 
-a telegram bot that counts `lemna minors` from a given photo.
+`mercimek` is a Telegram bot that counts [lemna
+minors](https://en.wikipedia.org/wiki/Lemna_minor) from a given photo. It's a
+simple wrapper around the awesome [Fiji](https://imagej.net/Fiji) image
+processing toolset.
 
 ## installation
 
+```
 go get -u github.com/igungor/mercimek
+```
 
 ## run
 
-mercimek is a wrapper around [Fiji](https://imagej.net/Fiji), so you'll need to download Fiji. See
+mercimek is a wrapper around , so you'll need to download Fiji. See
 the [downloads page](https://imagej.net/Fiji/Downloads).
 
 After you install Fiji, set the `binary-path` in mercimek.conf to the Fiji executable's full path.
@@ -18,6 +25,8 @@ https://core.telegram.org/bots.
 If everything is set, run:
 
 `mercimek -c mercimek.conf`
+
+[See it in action.](assets/telegram.png)
 
 ## license
 
